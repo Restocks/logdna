@@ -1,11 +1,14 @@
 package logdna
 
-import "bytes"
-import "encoding/json"
-import "net/http"
-import "net/url"
-import "strconv"
-import "time"
+import (
+	"bytes"
+	"encoding/json"
+	"log"
+	"net/http"
+	"net/url"
+	"strconv"
+	"time"
+)
 
 // IngestBaseURL is the base URL for the LogDNA ingest API.
 const IngestBaseURL = "https://logs.logdna.com/logs/ingest"
@@ -43,8 +46,12 @@ type payloadJSON struct {
 
 // makeIngestURL creats a new URL to the a full LogDNA ingest API endpoint with
 // API key and requierd parameters.
-func makeIngestURL(cfg Config) url.URL {
-	u, _ := url.Parse(IngestBaseURL)
+func makeIngestURL(cfg Config) (url.URL, error) {
+	u, err := url.Parse(IngestBaseURL)
+
+	if err != nil {
+		return url.URL{}, err
+	}
 
 	u.User = url.User(cfg.APIKey)
 	values := url.Values{}
@@ -52,7 +59,7 @@ func makeIngestURL(cfg Config) url.URL {
 	values.Set("now", strconv.FormatInt(time.Time{}.UnixNano(), 10))
 	u.RawQuery = values.Encode()
 
-	return *u
+	return *u, err
 }
 
 // NewClient returns a Client configured to send logs to the LogDNA ingest API.
@@ -61,10 +68,15 @@ func NewClient(cfg Config) *Client {
 		cfg.FlushLimit = DefaultFlushLimit
 	}
 
-	var client Client
-	client.apiURL = makeIngestURL(cfg)
+	iu, err := makeIngestURL(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	client.config = cfg
+	client := Client{
+		apiURL: iu,
+		config: cfg,
+	}
 
 	return &client
 }

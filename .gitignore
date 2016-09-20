@@ -2,6 +2,7 @@
 *.o
 *.a
 *.so
+build/logdna-stdin
 
 # Folders
 _obj
