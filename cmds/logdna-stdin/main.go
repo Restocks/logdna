@@ -1,11 +1,13 @@
 package main
 
-import "bufio"
-import "flag"
-import "fmt"
-import "os"
-import "time"
-import "github.com/ctrlrsf/logdna"
+import (
+	"bufio"
+	"flag"
+	"fmt"
+	"github.com/ctrlrsf/logdna"
+	"os"
+	"time"
+)
 
 func main() {
 	apiKey := os.Getenv("LOGDNA_API_KEY")
@@ -32,12 +34,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg := logdna.Config{}
-	cfg.APIKey = apiKey
-	cfg.Hostname = *hostname
-	cfg.LogFile = *logFileName
-
-	client := logdna.NewClient(cfg)
+	client := logdna.NewClient(logdna.Config{
+		APIKey:   apiKey,
+		Hostname: *hostname,
+		LogFile:  *logFileName,
+	})
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
